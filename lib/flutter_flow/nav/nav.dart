@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import '/backend/backend.dart';
+
+import '/backend/schema/structs/index.dart';
+
+import '/backend/supabase/supabase.dart';
 
 import '/auth/base_auth_user_provider.dart';
 
@@ -93,272 +96,38 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => LoginWidget(),
         ),
         FFRoute(
+          name: 'onboarding',
+          path: '/onboarding',
+          builder: (context, params) => OnboardingWidget(),
+        ),
+        FFRoute(
           name: 'createAccount',
           path: '/createAccount',
           builder: (context, params) => CreateAccountWidget(),
         ),
         FFRoute(
-          name: 'homePage_MAIN',
-          path: '/homePageMAIN',
+          name: 'homePage',
+          path: '/homePage',
+          requireAuth: true,
           builder: (context, params) => params.isEmpty
-              ? NavBarPage(initialPage: 'homePage_MAIN')
-              : HomePageMAINWidget(),
+              ? NavBarPage(initialPage: 'homePage')
+              : HomePageWidget(),
         ),
         FFRoute(
-          name: 'propertyDetails',
-          path: '/propertyDetails',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => PropertyDetailsWidget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'searchProperties',
-          path: '/searchProperties',
-          builder: (context, params) => SearchPropertiesWidget(
-            searchTerm: params.getParam(
-              'searchTerm',
-              ParamType.String,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'myTrips',
-          path: '/myTrips',
+          name: 'profile',
+          path: '/profile',
+          requireAuth: true,
           builder: (context, params) => params.isEmpty
-              ? NavBarPage(initialPage: 'myTrips')
-              : MyTripsWidget(),
+              ? NavBarPage(initialPage: 'profile')
+              : ProfileWidget(),
         ),
         FFRoute(
-          name: 'tripDetails',
-          path: '/tripDetails',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-            'tripRef': getDoc(['trips'], TripsRecord.fromSnapshot),
-          },
-          builder: (context, params) => TripDetailsWidget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-            tripRef: params.getParam(
-              'tripRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'propertyReview',
-          path: '/propertyReview',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => PropertyReviewWidget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'bookNow',
-          path: '/bookNow',
-          asyncParams: {
-            'propertyDetails':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => BookNowWidget(
-            propertyDetails: params.getParam(
-              'propertyDetails',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'profilePage',
-          path: '/profilePage',
+          name: 'scanPage',
+          path: '/scanPage',
+          requireAuth: true,
           builder: (context, params) => params.isEmpty
-              ? NavBarPage(initialPage: 'profilePage')
-              : ProfilePageWidget(),
-        ),
-        FFRoute(
-          name: 'paymentInfo',
-          path: '/paymentInfo',
-          builder: (context, params) => PaymentInfoWidget(),
-        ),
-        FFRoute(
-          name: 'editProfile',
-          path: '/editProfile',
-          asyncParams: {
-            'userProfile': getDoc(['users'], UsersRecord.fromSnapshot),
-          },
-          builder: (context, params) => EditProfileWidget(
-            userProfile: params.getParam(
-              'userProfile',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'changePassword',
-          path: '/changePassword',
-          asyncParams: {
-            'userProfile': getDoc(['users'], UsersRecord.fromSnapshot),
-          },
-          builder: (context, params) => ChangePasswordWidget(
-            userProfile: params.getParam(
-              'userProfile',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'createProperty_1',
-          path: '/createProperty1',
-          builder: (context, params) => CreateProperty1Widget(),
-        ),
-        FFRoute(
-          name: 'HomePage_ALT',
-          path: '/homePageALT',
-          builder: (context, params) => HomePageALTWidget(),
-        ),
-        FFRoute(
-          name: 'createProperty_2',
-          path: '/createProperty2',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-            'propertyAmenities':
-                getDoc(['amenitities'], AmenititiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => CreateProperty2Widget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-            propertyAmenities: params.getParam(
-              'propertyAmenities',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'createProperty_3',
-          path: '/createProperty3',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => CreateProperty3Widget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'myProperties',
-          path: '/myProperties',
-          builder: (context, params) => MyPropertiesWidget(),
-        ),
-        FFRoute(
-          name: 'propertyDetails_Owner',
-          path: '/propertyDetailsOwner',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => PropertyDetailsOwnerWidget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'myBookings',
-          path: '/myBookings',
-          builder: (context, params) => MyBookingsWidget(),
-        ),
-        FFRoute(
-          name: 'tripDetailsHOST',
-          path: '/tripDetailsHOST',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-            'tripRef': getDoc(['trips'], TripsRecord.fromSnapshot),
-          },
-          builder: (context, params) => TripDetailsHOSTWidget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-            tripRef: params.getParam(
-              'tripRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'editProperty_1',
-          path: '/editProperty1',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => EditProperty1Widget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'editProperty_2',
-          path: '/editProperty2',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-            'propertyAmenities':
-                getDoc(['amenitities'], AmenititiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => EditProperty2Widget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-            propertyAmenities: params.getParam(
-              'propertyAmenities',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'editProperty_3',
-          path: '/editProperty3',
-          asyncParams: {
-            'propertyRef':
-                getDoc(['properties'], PropertiesRecord.fromSnapshot),
-          },
-          builder: (context, params) => EditProperty3Widget(
-            propertyRef: params.getParam(
-              'propertyRef',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: 'Onboarding',
-          path: '/onboarding',
-          builder: (context, params) => OnboardingWidget(),
+              ? NavBarPage(initialPage: 'scanPage')
+              : ScanPageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
@@ -477,7 +246,7 @@ class FFParameters {
     String paramName,
     ParamType type, {
     bool isList = false,
-    List<String>? collectionNamePath,
+    StructBuilder<T>? structBuilder,
   }) {
     if (futureParamValues.containsKey(paramName)) {
       return futureParamValues[paramName];
@@ -495,7 +264,7 @@ class FFParameters {
       param,
       type,
       isList,
-      collectionNamePath: collectionNamePath,
+      structBuilder: structBuilder,
     );
   }
 }
@@ -544,10 +313,10 @@ class FFRoute {
               : builder(context, ffParams);
           final child = appStateNotifier.loading
               ? Container(
-                  color: Colors.transparent,
+                  color: FlutterFlowTheme.of(context).primary,
                   child: Image.asset(
-                    'assets/images/splashScreen@2x.png',
-                    fit: BoxFit.cover,
+                    'assets/images/Layer_copy_7_1.png',
+                    fit: BoxFit.none,
                   ),
                 )
               : page;

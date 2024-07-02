@@ -1,14 +1,13 @@
-import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'auth/firebase_auth/firebase_user_provider.dart';
-import 'auth/firebase_auth/auth_util.dart';
 
-import 'backend/firebase/firebase_config.dart';
+import 'auth/supabase_auth/supabase_user_provider.dart';
+import 'auth/supabase_auth/auth_util.dart';
+
+import '/backend/supabase/supabase.dart';
 import 'flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,17 +18,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
-  await initFirebase();
+
+  await SupaFlow.initialize();
 
   await FlutterFlowTheme.initialize();
 
-  final appState = FFAppState(); // Initialize FFAppState
-  await appState.initializePersistedState();
-
-  runApp(ChangeNotifierProvider(
-    create: (context) => appState,
-    child: MyApp(),
-  ));
+  runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -49,15 +43,13 @@ class _MyAppState extends State<MyApp> {
 
   late Stream<BaseAuthUser> userStream;
 
-  final authUserSub = authenticatedUserStream.listen((_) {});
-
   @override
   void initState() {
     super.initState();
 
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
-    userStream = goodsillaFirebaseUserStream()
+    userStream = goodsillaSupabaseUserStream()
       ..listen((user) {
         _appStateNotifier.update(user);
       });
@@ -66,13 +58,6 @@ class _MyAppState extends State<MyApp> {
       Duration(milliseconds: 1000),
       () => _appStateNotifier.stopShowingSplashImage(),
     );
-  }
-
-  @override
-  void dispose() {
-    authUserSub.cancel();
-
-    super.dispose();
   }
 
   void setThemeMode(ThemeMode mode) => setState(() {
@@ -92,10 +77,32 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [Locale('en', '')],
       theme: ThemeData(
         brightness: Brightness.light,
+        scrollbarTheme: ScrollbarThemeData(
+          thumbColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.dragged)) {
+              return Color(4285019050);
+            }
+            if (states.contains(MaterialState.hovered)) {
+              return Color(4285019050);
+            }
+            return Color(4285019050);
+          }),
+        ),
         useMaterial3: false,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
+        scrollbarTheme: ScrollbarThemeData(
+          thumbColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.dragged)) {
+              return Color(4285019050);
+            }
+            if (states.contains(MaterialState.hovered)) {
+              return Color(4285019050);
+            }
+            return Color(4285019050);
+          }),
+        ),
         useMaterial3: false,
       ),
       themeMode: _themeMode,
@@ -116,7 +123,7 @@ class NavBarPage extends StatefulWidget {
 
 /// This is the private State class that goes with NavBarPage.
 class _NavBarPageState extends State<NavBarPage> {
-  String _currentPageName = 'homePage_MAIN';
+  String _currentPageName = 'homePage';
   late Widget? _currentPage;
 
   @override
@@ -129,9 +136,9 @@ class _NavBarPageState extends State<NavBarPage> {
   @override
   Widget build(BuildContext context) {
     final tabs = {
-      'homePage_MAIN': HomePageMAINWidget(),
-      'myTrips': MyTripsWidget(),
-      'profilePage': ProfilePageWidget(),
+      'homePage': HomePageWidget(),
+      'scanPage': ScanPageWidget(),
+      'profile': ProfileWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
 
@@ -145,7 +152,7 @@ class _NavBarPageState extends State<NavBarPage> {
         }),
         backgroundColor: Colors.white,
         selectedItemColor: FlutterFlowTheme.of(context).primary,
-        unselectedItemColor: FlutterFlowTheme.of(context).grayIcon,
+        unselectedItemColor: FlutterFlowTheme.of(context).tertiary,
         showSelectedLabels: true,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
@@ -153,31 +160,35 @@ class _NavBarPageState extends State<NavBarPage> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.home_outlined,
-              size: 24.0,
+              size: 32.0,
             ),
             activeIcon: Icon(
-              Icons.home_rounded,
-              size: 24.0,
+              Icons.home,
+              size: 32.0,
             ),
             label: 'Home',
             tooltip: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.format_list_bulleted,
-              size: 24.0,
+              Icons.qr_code_scanner_outlined,
+              size: 32.0,
             ),
-            label: 'My Trips',
+            activeIcon: Icon(
+              Icons.qr_code_scanner_rounded,
+              size: 32.0,
+            ),
+            label: '',
             tooltip: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.account_circle_outlined,
-              size: 24.0,
+              Icons.person_outline,
+              size: 32.0,
             ),
             activeIcon: Icon(
-              Icons.account_circle,
-              size: 24.0,
+              Icons.person,
+              size: 32.0,
             ),
             label: 'Profile',
             tooltip: '',

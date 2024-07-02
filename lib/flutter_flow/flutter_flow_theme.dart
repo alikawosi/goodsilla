@@ -8,7 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 const kThemeModeKey = '__theme_mode__';
 SharedPreferences? _prefs;
 
+enum DeviceSize {
+  mobile,
+  tablet,
+  desktop,
+}
+
 abstract class FlutterFlowTheme {
+  static DeviceSize deviceSize = DeviceSize.mobile;
+
   static Future initialize() async =>
       _prefs = await SharedPreferences.getInstance();
   static ThemeMode get themeMode {
@@ -25,6 +33,7 @@ abstract class FlutterFlowTheme {
       : _prefs?.setBool(kThemeModeKey, mode == ThemeMode.dark);
 
   static FlutterFlowTheme of(BuildContext context) {
+    deviceSize = getDeviceSize(context);
     return Theme.of(context).brightness == Brightness.dark
         ? DarkModeTheme()
         : LightModeTheme();
@@ -53,6 +62,8 @@ abstract class FlutterFlowTheme {
   late Color warning;
   late Color error;
   late Color info;
+
+  late Color customPink;
 
   @Deprecated('Use displaySmallFamily instead')
   String get title1Family => displaySmallFamily;
@@ -114,7 +125,22 @@ abstract class FlutterFlowTheme {
   String get bodySmallFamily => typography.bodySmallFamily;
   TextStyle get bodySmall => typography.bodySmall;
 
-  Typography get typography => ThemeTypography(this);
+  Typography get typography => {
+        DeviceSize.mobile: MobileTypography(this),
+        DeviceSize.tablet: TabletTypography(this),
+        DeviceSize.desktop: DesktopTypography(this),
+      }[deviceSize]!;
+}
+
+DeviceSize getDeviceSize(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  if (width < 479) {
+    return DeviceSize.mobile;
+  } else if (width < 991) {
+    return DeviceSize.tablet;
+  } else {
+    return DeviceSize.desktop;
+  }
 }
 
 class LightModeTheme extends FlutterFlowTheme {
@@ -125,9 +151,9 @@ class LightModeTheme extends FlutterFlowTheme {
   @Deprecated('Use tertiary instead')
   Color get tertiaryColor => tertiary;
 
-  late Color primary = const Color(0xFF9489F5);
-  late Color secondary = const Color(0xFF39D2C0);
-  late Color tertiary = const Color(0xFF6D5FED);
+  late Color primary = const Color(0xFF6833AA);
+  late Color secondary = const Color(0xFF4DFFE1);
+  late Color tertiary = const Color(0xFF000E77);
   late Color alternate = const Color(0xFFE0E3E7);
   late Color primaryText = const Color(0xFF101213);
   late Color secondaryText = const Color(0xFF57636C);
@@ -141,6 +167,8 @@ class LightModeTheme extends FlutterFlowTheme {
   late Color warning = const Color(0xFFCA6C45);
   late Color error = const Color(0xFFE74852);
   late Color info = const Color(0xFFFFFFFF);
+
+  late Color customPink = Color(0xFFFFEDEB);
 }
 
 abstract class Typography {
@@ -176,111 +204,333 @@ abstract class Typography {
   TextStyle get bodySmall;
 }
 
-class ThemeTypography extends Typography {
-  ThemeTypography(this.theme);
+class MobileTypography extends Typography {
+  MobileTypography(this.theme);
 
   final FlutterFlowTheme theme;
 
-  String get displayLargeFamily => 'Urbanist';
+  String get displayLargeFamily => 'Roboto';
   TextStyle get displayLarge => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
         color: theme.primaryText,
         fontWeight: FontWeight.bold,
-        fontSize: 57.0,
+        fontSize: 48.0,
       );
-  String get displayMediumFamily => 'Urbanist';
+  String get displayMediumFamily => 'Roboto';
   TextStyle get displayMedium => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
         color: theme.primaryText,
         fontWeight: FontWeight.w600,
-        fontSize: 45.0,
+        fontSize: 40.0,
       );
-  String get displaySmallFamily => 'Urbanist';
+  String get displaySmallFamily => 'Roboto';
   TextStyle get displaySmall => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
         color: theme.primaryText,
         fontWeight: FontWeight.w600,
         fontSize: 36.0,
       );
-  String get headlineLargeFamily => 'Urbanist';
+  String get headlineLargeFamily => 'Roboto';
   TextStyle get headlineLarge => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
         fontSize: 32.0,
       );
-  String get headlineMediumFamily => 'Urbanist';
+  String get headlineMediumFamily => 'Roboto';
   TextStyle get headlineMedium => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
         color: theme.primaryText,
         fontWeight: FontWeight.w500,
         fontSize: 28.0,
       );
-  String get headlineSmallFamily => 'Urbanist';
+  String get headlineSmallFamily => 'Roboto';
   TextStyle get headlineSmall => GoogleFonts.getFont(
-        'Urbanist',
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 24.0,
+      );
+  String get titleLargeFamily => 'Roboto Condensed';
+  TextStyle get titleLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
         color: theme.primaryText,
         fontWeight: FontWeight.w500,
         fontSize: 20.0,
       );
-  String get titleLargeFamily => 'Manrope';
-  TextStyle get titleLarge => GoogleFonts.getFont(
-        'Manrope',
-        color: theme.primaryText,
-        fontWeight: FontWeight.w500,
-        fontSize: 22.0,
-      );
-  String get titleMediumFamily => 'Manrope';
+  String get titleMediumFamily => 'Roboto Condensed';
   TextStyle get titleMedium => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.info,
         fontWeight: FontWeight.w500,
         fontSize: 18.0,
       );
-  String get titleSmallFamily => 'Manrope';
+  String get titleSmallFamily => 'Roboto Condensed';
   TextStyle get titleSmall => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.info,
         fontWeight: FontWeight.w500,
         fontSize: 16.0,
       );
-  String get labelLargeFamily => 'Manrope';
+  String get labelLargeFamily => 'Roboto Condensed';
   TextStyle get labelLarge => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
         fontSize: 14.0,
       );
-  String get labelMediumFamily => 'Manrope';
+  String get labelMediumFamily => 'Roboto Condensed';
   TextStyle get labelMedium => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
         fontSize: 12.0,
       );
-  String get labelSmallFamily => 'Manrope';
+  String get labelSmallFamily => 'Roboto Condensed';
   TextStyle get labelSmall => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
         fontSize: 11.0,
       );
-  String get bodyLargeFamily => 'Manrope';
+  String get bodyLargeFamily => 'Roboto Condensed';
   TextStyle get bodyLarge => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.primaryText,
         fontSize: 16.0,
       );
-  String get bodyMediumFamily => 'Manrope';
+  String get bodyMediumFamily => 'Roboto Condensed';
   TextStyle get bodyMedium => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
         fontSize: 14.0,
       );
-  String get bodySmallFamily => 'Manrope';
+  String get bodySmallFamily => 'Roboto Condensed';
   TextStyle get bodySmall => GoogleFonts.getFont(
-        'Manrope',
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 12.0,
+      );
+}
+
+class TabletTypography extends Typography {
+  TabletTypography(this.theme);
+
+  final FlutterFlowTheme theme;
+
+  String get displayLargeFamily => 'Roboto';
+  TextStyle get displayLarge => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.bold,
+        fontSize: 57.0,
+      );
+  String get displayMediumFamily => 'Roboto';
+  TextStyle get displayMedium => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w600,
+        fontSize: 45.0,
+      );
+  String get displaySmallFamily => 'Roboto';
+  TextStyle get displaySmall => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w600,
+        fontSize: 36.0,
+      );
+  String get headlineLargeFamily => 'Roboto';
+  TextStyle get headlineLarge => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 32.0,
+      );
+  String get headlineMediumFamily => 'Roboto';
+  TextStyle get headlineMedium => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 28.0,
+      );
+  String get headlineSmallFamily => 'Roboto';
+  TextStyle get headlineSmall => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 20.0,
+      );
+  String get titleLargeFamily => 'Roboto Condensed';
+  TextStyle get titleLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 22.0,
+      );
+  String get titleMediumFamily => 'Roboto Condensed';
+  TextStyle get titleMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.info,
+        fontWeight: FontWeight.w500,
+        fontSize: 18.0,
+      );
+  String get titleSmallFamily => 'Roboto Condensed';
+  TextStyle get titleSmall => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.info,
+        fontWeight: FontWeight.w500,
+        fontSize: 16.0,
+      );
+  String get labelLargeFamily => 'Roboto Condensed';
+  TextStyle get labelLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 14.0,
+      );
+  String get labelMediumFamily => 'Roboto Condensed';
+  TextStyle get labelMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 12.0,
+      );
+  String get labelSmallFamily => 'Roboto Condensed';
+  TextStyle get labelSmall => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 11.0,
+      );
+  String get bodyLargeFamily => 'Roboto Condensed';
+  TextStyle get bodyLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontSize: 16.0,
+      );
+  String get bodyMediumFamily => 'Roboto Condensed';
+  TextStyle get bodyMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 14.0,
+      );
+  String get bodySmallFamily => 'Roboto Condensed';
+  TextStyle get bodySmall => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 12.0,
+      );
+}
+
+class DesktopTypography extends Typography {
+  DesktopTypography(this.theme);
+
+  final FlutterFlowTheme theme;
+
+  String get displayLargeFamily => 'Roboto';
+  TextStyle get displayLarge => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.bold,
+        fontSize: 57.0,
+      );
+  String get displayMediumFamily => 'Roboto';
+  TextStyle get displayMedium => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w600,
+        fontSize: 45.0,
+      );
+  String get displaySmallFamily => 'Roboto';
+  TextStyle get displaySmall => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w600,
+        fontSize: 36.0,
+      );
+  String get headlineLargeFamily => 'Roboto';
+  TextStyle get headlineLarge => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 32.0,
+      );
+  String get headlineMediumFamily => 'Roboto';
+  TextStyle get headlineMedium => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 28.0,
+      );
+  String get headlineSmallFamily => 'Roboto';
+  TextStyle get headlineSmall => GoogleFonts.getFont(
+        'Roboto',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 20.0,
+      );
+  String get titleLargeFamily => 'Roboto Condensed';
+  TextStyle get titleLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 22.0,
+      );
+  String get titleMediumFamily => 'Roboto Condensed';
+  TextStyle get titleMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.info,
+        fontWeight: FontWeight.w500,
+        fontSize: 18.0,
+      );
+  String get titleSmallFamily => 'Roboto Condensed';
+  TextStyle get titleSmall => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.info,
+        fontWeight: FontWeight.w500,
+        fontSize: 16.0,
+      );
+  String get labelLargeFamily => 'Roboto Condensed';
+  TextStyle get labelLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 14.0,
+      );
+  String get labelMediumFamily => 'Roboto Condensed';
+  TextStyle get labelMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 12.0,
+      );
+  String get labelSmallFamily => 'Roboto Condensed';
+  TextStyle get labelSmall => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.secondaryText,
+        fontWeight: FontWeight.w500,
+        fontSize: 11.0,
+      );
+  String get bodyLargeFamily => 'Roboto Condensed';
+  TextStyle get bodyLarge => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontSize: 16.0,
+      );
+  String get bodyMediumFamily => 'Roboto Condensed';
+  TextStyle get bodyMedium => GoogleFonts.getFont(
+        'Roboto Condensed',
+        color: theme.primaryText,
+        fontWeight: FontWeight.normal,
+        fontSize: 14.0,
+      );
+  String get bodySmallFamily => 'Roboto Condensed';
+  TextStyle get bodySmall => GoogleFonts.getFont(
+        'Roboto Condensed',
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
         fontSize: 12.0,
@@ -295,8 +545,8 @@ class DarkModeTheme extends FlutterFlowTheme {
   @Deprecated('Use tertiary instead')
   Color get tertiaryColor => tertiary;
 
-  late Color primary = const Color(0xFF9489F5);
-  late Color secondary = const Color(0xFF39D2C0);
+  late Color primary = const Color(0xFF6833AA);
+  late Color secondary = const Color(0xFF4DFFE1);
   late Color tertiary = const Color(0xFF6D5FED);
   late Color alternate = const Color(0xFF22282F);
   late Color primaryText = const Color(0xFFFFFFFF);
@@ -311,6 +561,8 @@ class DarkModeTheme extends FlutterFlowTheme {
   late Color warning = const Color(0xFFCA6C45);
   late Color error = const Color(0xFFE74852);
   late Color info = const Color(0xFFFFFFFF);
+
+  late Color customPink = Color(0xFFE049F6);
 }
 
 extension TextStyleHelper on TextStyle {
