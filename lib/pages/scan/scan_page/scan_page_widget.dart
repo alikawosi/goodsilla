@@ -4,11 +4,11 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/upload_data.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'scan_page_model.dart';
@@ -55,6 +55,8 @@ class _ScanPageWidgetState extends State<ScanPageWidget>
         ],
       ),
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
@@ -108,40 +110,10 @@ class _ScanPageWidgetState extends State<ScanPageWidget>
                           ),
                           Padding(
                             padding: EdgeInsets.all(8.0),
-                            child: InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                await Future.wait([
-                                  Future(() async {
-                                    setState(() {
-                                      _model.isDataUploading2 = false;
-                                      _model.uploadedLocalFile2 =
-                                          FFUploadedFile(
-                                              bytes: Uint8List.fromList([]));
-                                      _model.uploadedFileUrl2 = '';
-                                    });
-                                  }),
-                                  Future(() async {
-                                    setState(() {
-                                      _model.isDataUploading1 = false;
-                                      _model.uploadedLocalFile1 =
-                                          FFUploadedFile(
-                                              bytes: Uint8List.fromList([]));
-                                      _model.uploadedFileUrl1 = '';
-                                    });
-                                  }),
-                                ]);
-                                _model.uploadedPhoto = null;
-                                setState(() {});
-                              },
-                              child: Icon(
-                                Icons.close,
-                                color: FlutterFlowTheme.of(context).error,
-                                size: 36.0,
-                              ),
+                            child: Icon(
+                              Icons.close,
+                              color: FlutterFlowTheme.of(context).error,
+                              size: 36.0,
                             ),
                           ),
                         ],
@@ -167,60 +139,51 @@ class _ScanPageWidgetState extends State<ScanPageWidget>
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
-                        final selectedMedia =
-                            await selectMediaWithSourceBottomSheet(
-                          context: context,
-                          storageFolderPath: 'test',
-                          allowPhoto: true,
+                        _model.scannedProductBarcode =
+                            await FlutterBarcodeScanner.scanBarcode(
+                          '#C62828', // scanning line color
+                          'Cancel', // cancel button text
+                          true, // whether to show the flash icon
+                          ScanMode.QR,
                         );
-                        if (selectedMedia != null &&
-                            selectedMedia.every((m) =>
-                                validateFileFormat(m.storagePath, context))) {
-                          setState(() => _model.isDataUploading1 = true);
-                          var selectedUploadedFiles = <FFUploadedFile>[];
 
-                          var downloadUrls = <String>[];
-                          try {
-                            showUploadMessage(
-                              context,
-                              'Uploading file...',
-                              showLoading: true,
-                            );
-                            selectedUploadedFiles = selectedMedia
-                                .map((m) => FFUploadedFile(
-                                      name: m.storagePath.split('/').last,
-                                      bytes: m.bytes,
-                                      height: m.dimensions?.height,
-                                      width: m.dimensions?.width,
-                                      blurHash: m.blurHash,
-                                    ))
-                                .toList();
+                        _model.productQuery = await ProductsTable().queryRows(
+                          queryFn: (q) => q.eq(
+                            'barcode',
+                            _model.scannedProductBarcode,
+                          ),
+                        );
+                        if (!(_model.productQuery != null &&
+                            (_model.productQuery)!.isNotEmpty)) {
+                          _model.productFinder =
+                              await ProductFinderByBarcodeCall.call(
+                            productBarcode: _model.scannedProductBarcode,
+                          );
 
-                            downloadUrls = await uploadSupabaseStorageFiles(
-                              bucketName: 'uploadedProducts',
-                              selectedFiles: selectedMedia,
-                            );
-                          } finally {
-                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                            _model.isDataUploading1 = false;
-                          }
-                          if (selectedUploadedFiles.length ==
-                                  selectedMedia.length &&
-                              downloadUrls.length == selectedMedia.length) {
-                            setState(() {
-                              _model.uploadedLocalFile1 =
-                                  selectedUploadedFiles.first;
-                              _model.uploadedFileUrl1 = downloadUrls.first;
+                          if ((_model.productFinder?.succeeded ?? true)) {
+                            _model.productBrandInfo =
+                                await BrandsTable().insert({
+                              'title': ProductFinderByBarcodeCall.productBrand(
+                                (_model.productFinder?.jsonBody ?? ''),
+                              ),
                             });
-                            showUploadMessage(context, 'Success!');
-                          } else {
-                            setState(() {});
-                            showUploadMessage(context, 'Failed to upload data');
-                            return;
+                            await ProductsTable().insert({
+                              'title': ProductFinderByBarcodeCall.productTitle(
+                                (_model.productFinder?.jsonBody ?? ''),
+                              ),
+                              'barcode':
+                                  ProductFinderByBarcodeCall.prodcuctCode(
+                                (_model.productFinder?.jsonBody ?? ''),
+                              ),
+                              'price': getJsonField(
+                                (_model.productFinder?.jsonBody ?? ''),
+                                r'''$.items[0].highest_recorded_price''',
+                              ),
+                              'brandRef': _model.productBrandInfo?.id,
+                            });
                           }
                         }
 
-                        _model.uploadedPhoto = _model.uploadedFileUrl2;
                         setState(() {});
                       },
                       child: Column(
@@ -261,82 +224,6 @@ class _ScanPageWidgetState extends State<ScanPageWidget>
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Expanded(
-                      child: FFButtonWidget(
-                        onPressed: () async {
-                          final selectedMedia =
-                              await selectMediaWithSourceBottomSheet(
-                            context: context,
-                            storageFolderPath: 'test',
-                            allowPhoto: true,
-                          );
-                          if (selectedMedia != null &&
-                              selectedMedia.every((m) =>
-                                  validateFileFormat(m.storagePath, context))) {
-                            setState(() => _model.isDataUploading2 = true);
-                            var selectedUploadedFiles = <FFUploadedFile>[];
-
-                            var downloadUrls = <String>[];
-                            try {
-                              selectedUploadedFiles = selectedMedia
-                                  .map((m) => FFUploadedFile(
-                                        name: m.storagePath.split('/').last,
-                                        bytes: m.bytes,
-                                        height: m.dimensions?.height,
-                                        width: m.dimensions?.width,
-                                        blurHash: m.blurHash,
-                                      ))
-                                  .toList();
-
-                              downloadUrls = await uploadSupabaseStorageFiles(
-                                bucketName: 'uploadedProducts',
-                                selectedFiles: selectedMedia,
-                              );
-                            } finally {
-                              _model.isDataUploading2 = false;
-                            }
-                            if (selectedUploadedFiles.length ==
-                                    selectedMedia.length &&
-                                downloadUrls.length == selectedMedia.length) {
-                              setState(() {
-                                _model.uploadedLocalFile2 =
-                                    selectedUploadedFiles.first;
-                                _model.uploadedFileUrl2 = downloadUrls.first;
-                              });
-                            } else {
-                              setState(() {});
-                              return;
-                            }
-                          }
-
-                          _model.uploadedPhoto = _model.uploadedFileUrl1;
-                          setState(() {});
-                        },
-                        text: 'Scan Barcode',
-                        options: FFButtonOptions(
-                          width: double.infinity,
-                          height: 55.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).primary,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleMedium
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleMediumFamily,
-                                color: Colors.white,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: GoogleFonts.asMap().containsKey(
-                                    FlutterFlowTheme.of(context)
-                                        .titleMediumFamily),
-                              ),
-                          elevation: 2.0,
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                    ),
                     Expanded(
                       child: FFButtonWidget(
                         onPressed: (_model.uploadedPhoto == null ||

@@ -37,6 +37,49 @@ class GoodsFinderCall {
   }
 }
 
+class ProductFinderByBarcodeCall {
+  static Future<ApiCallResponse> call({
+    String? productBarcode = '',
+  }) async {
+    return ApiManager.instance.makeApiCall(
+      callName: 'ProductFinderByBarcode',
+      apiUrl: 'https://api.upcitemdb.com/prod/trial/lookup',
+      callType: ApiCallType.GET,
+      headers: {},
+      params: {
+        'upc': productBarcode,
+      },
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static String? prodcuctCode(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.items[0].ean''',
+      ));
+  static String? productTitle(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.items[0].title''',
+      ));
+  static List? productInfo(dynamic response) => getJsonField(
+        response,
+        r'''$.items[0]''',
+        true,
+      ) as List?;
+  static String? productBrand(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.items[0].brand''',
+      ));
+}
+
 class ApiPagingParams {
   int nextPageNumber = 0;
   int numItems = 0;

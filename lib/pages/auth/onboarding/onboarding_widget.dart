@@ -26,6 +26,8 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => OnboardingModel());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
@@ -64,15 +66,8 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                               0.0, 0.0, 0.0, 30.0),
                           child: PageView(
                             controller: _model.pageViewController ??=
-                                PageController(initialPage: 1),
-                            onPageChanged: (_) async {
-                              await _model.pageViewController?.nextPage(
-                                duration: Duration(milliseconds: 300),
-                                curve: Curves.ease,
-                              );
-                              _model.bgColor = '#FFEDEB';
-                              setState(() {});
-                            },
+                                PageController(initialPage: 0),
+                            onPageChanged: (_) => setState(() {}),
                             scrollDirection: Axis.horizontal,
                             children: [
                               Padding(
@@ -270,7 +265,7 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                                   FFButtonWidget(
                                     onPressed: () async {
                                       context.goNamed(
-                                        'login',
+                                        'scanPage',
                                         extra: <String, dynamic>{
                                           kTransitionInfoKey: TransitionInfo(
                                             hasTransition: true,
@@ -332,7 +327,7 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                                 0.0, 0.0, 0.0, 10.0),
                             child: smooth_page_indicator.SmoothPageIndicator(
                               controller: _model.pageViewController ??=
-                                  PageController(initialPage: 1),
+                                  PageController(initialPage: 0),
                               count: 3,
                               axisDirection: Axis.horizontal,
                               onDotClicked: (i) async {

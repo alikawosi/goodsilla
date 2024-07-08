@@ -217,12 +217,16 @@ dynamic deserializeParam<T>(
       case ParamType.SupabaseRow:
         final data = json.decode(param) as Map<String, dynamic>;
         switch (T) {
-          case RequestsRow:
-            return RequestsRow(data);
+          case BrandsRow:
+            return BrandsRow(data);
+          case ReviewSourceRow:
+            return ReviewSourceRow(data);
+          case ProductsRow:
+            return ProductsRow(data);
           case UsersRow:
             return UsersRow(data);
-          case ResponsesRow:
-            return ResponsesRow(data);
+          case ReviewsRow:
+            return ReviewsRow(data);
           default:
             return null;
         }
