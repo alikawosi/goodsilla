@@ -73,9 +73,11 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                         '#C62828', // scanning line color
                         'Cancel', // cancel button text
                         true, // whether to show the flash icon
-                        ScanMode.QR,
+                        ScanMode.BARCODE,
                       );
 
+                      _model.barcode = _model.scannedProductBarcode;
+                      setState(() {});
                       _model.productQuery = await ProductsTable().queryRows(
                         queryFn: (q) => q.eq(
                           'barcode',
@@ -197,8 +199,8 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                               0.0, 20.0, 0.0, 0.0),
                           child: Text(
                             valueOrDefault<String>(
-                              _model.scannedProductBarcode,
-                              'Nothing',
+                              _model.barcode,
+                              'nothing',
                             ),
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
