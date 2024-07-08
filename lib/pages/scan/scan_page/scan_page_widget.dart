@@ -82,8 +82,25 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                           _model.scannedProductBarcode,
                         ),
                       );
-                      if (!(_model.productQuery != null &&
-                          (_model.productQuery)!.isNotEmpty)) {
+                      if (_model.productQuery != null &&
+                          (_model.productQuery)!.isNotEmpty) {
+                        await showDialog(
+                          context: context,
+                          builder: (alertDialogContext) {
+                            return AlertDialog(
+                              title: Text('Yeaahhh!'),
+                              content: Text('Product is available in Db!'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext),
+                                  child: Text('Ok'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
                         _model.productFinder =
                             await ProductFinderByBarcodeCall.call(
                           productBarcode: _model.scannedProductBarcode,
@@ -108,6 +125,41 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                             ),
                             'brandRef': _model.productBrandInfo?.id,
                           });
+                          await showDialog(
+                            context: context,
+                            builder: (alertDialogContext) {
+                              return AlertDialog(
+                                title: Text('Yesss!'),
+                                content: Text(
+                                    (_model.productFinder?.jsonBody ?? '')
+                                        .toString()),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(alertDialogContext),
+                                    child: Text('Ok'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          await showDialog(
+                            context: context,
+                            builder: (alertDialogContext) {
+                              return AlertDialog(
+                                title: Text('Ooopss!!'),
+                                content: Text('Product not found!'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(alertDialogContext),
+                                    child: Text('Try something new!'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         }
                       }
 
@@ -139,6 +191,27 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                                     FlutterFlowTheme.of(context)
                                         .bodyMediumFamily),
                               ),
+                        ),
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 20.0, 0.0, 0.0),
+                          child: Text(
+                            valueOrDefault<String>(
+                              _model.scannedProductBarcode,
+                              'Nothing',
+                            ),
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  fontFamily: FlutterFlowTheme.of(context)
+                                      .bodyMediumFamily,
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.0,
+                                  useGoogleFonts: GoogleFonts.asMap()
+                                      .containsKey(FlutterFlowTheme.of(context)
+                                          .bodyMediumFamily),
+                                ),
+                          ),
                         ),
                       ],
                     ),
