@@ -2,6 +2,7 @@
 
 import '/backend/schema/util/schema_util.dart';
 
+import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
 class ProductInfoStruct extends BaseStruct {
