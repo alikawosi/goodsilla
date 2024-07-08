@@ -140,6 +140,12 @@
       "languageVersion": "2.19"
     },
     {
+      "name": "floating_bottom_navigation_bar",
+      "rootUri": "file:///Users/alikawosi/.pub-cache/hosted/pub.dev/floating_bottom_navigation_bar-1.5.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "flutter",
       "rootUri": "file:///Users/alikawosi/Tools/flutter/packages/flutter",
       "packageUri": "lib/",
@@ -806,7 +812,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2024-07-08T22:34:43.978973Z",
+  "generated": "2024-07-08T22:43:44.641578Z",
   "generator": "pub",
   "generatorVersion": "3.4.3",
   "flutterRoot": "file:///Users/alikawosi/Tools/flutter",
