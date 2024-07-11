@@ -3,6 +3,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/custom_code/actions/index.dart' as actions;
 import 'scan_page_widget.dart' show ScanPageWidget;
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -20,10 +21,22 @@ class ScanPageModel extends FlutterFlowModel<ScanPageWidget> {
   var scannedProductBarcode = '';
   // Stores action output result for [Backend Call - Query Rows] action in Column widget.
   List<ProductsRow>? productQuery;
+  // Stores action output result for [Backend Call - API (productDetailFinder)] action in Column widget.
+  ApiCallResponse? existedProductDetailsInfo;
+  // Stores action output result for [Custom Action - stringToJSON] action in Column widget.
+  dynamic? gptObjectResponseExistedProduct;
   // Stores action output result for [Backend Call - API (ProductFinderByBarcode)] action in Column widget.
   ApiCallResponse? productFinder;
+  // Stores action output result for [Backend Call - Query Rows] action in Column widget.
+  List<BrandsRow>? brandsQuery;
   // Stores action output result for [Backend Call - Insert Row] action in Column widget.
-  BrandsRow? productBrandInfo;
+  BrandsRow? productBrand;
+  // Stores action output result for [Backend Call - Insert Row] action in Column widget.
+  ProductsRow? insertedProductInfo;
+  // Stores action output result for [Backend Call - API (productDetailFinder)] action in Column widget.
+  ApiCallResponse? productDetailsInfo;
+  // Stores action output result for [Custom Action - stringToJSON] action in Column widget.
+  dynamic? gptObjectResponse;
 
   @override
   void initState(BuildContext context) {}

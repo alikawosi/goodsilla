@@ -125,6 +125,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => params.isEmpty
               ? NavBarPage(initialPage: 'scanPage')
               : ScanPageWidget(),
+        ),
+        FFRoute(
+          name: 'ProductSummary',
+          path: '/productSummary',
+          builder: (context, params) => params.isEmpty
+              ? NavBarPage(initialPage: 'ProductSummary')
+              : ProductSummaryWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

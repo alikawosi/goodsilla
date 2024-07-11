@@ -6,3 +6,5 @@ export '/pages/auth/create_account/create_account_widget.dart'
 export '/pages/home/home_page/home_page_widget.dart' show HomePageWidget;
 export '/pages/profile/profile/profile_widget.dart' show ProfileWidget;
 export '/pages/scan/scan_page/scan_page_widget.dart' show ScanPageWidget;
+export '/pages/product/product_summary/product_summary_widget.dart'
+    show ProductSummaryWidget;

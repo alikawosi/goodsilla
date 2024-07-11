@@ -3,6 +3,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/custom_code/actions/index.dart' as actions;
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -102,19 +103,71 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                             );
                           },
                         );
+                        _model.existedProductDetailsInfo =
+                            await ProductDetailFinderCall.call(
+                          productTitle: _model.productQuery?.first?.title,
+                        );
+
+                        _model.gptObjectResponseExistedProduct =
+                            await actions.stringToJSON(
+                          getJsonField(
+                            (_model.existedProductDetailsInfo?.jsonBody ?? ''),
+                            r'''$.message''',
+                          ).toString(),
+                        );
+                        await showDialog(
+                          context: context,
+                          builder: (alertDialogContext) {
+                            return AlertDialog(
+                              title: Text('Yesss!'),
+                              content: Text(getJsonField(
+                                (_model.existedProductDetailsInfo?.jsonBody ??
+                                    ''),
+                                r'''$.message.pros''',
+                              ).toString()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext),
+                                  child: Text('Ok'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        context.pushNamed('ProductSummary');
                       } else {
                         _model.productFinder =
                             await ProductFinderByBarcodeCall.call(
                           productBarcode: _model.scannedProductBarcode,
                         );
 
-                        if ((_model.productFinder?.succeeded ?? true)) {
-                          _model.productBrandInfo = await BrandsTable().insert({
-                            'title': ProductFinderByBarcodeCall.productBrand(
+                        if (getJsonField(
                               (_model.productFinder?.jsonBody ?? ''),
+                              r'''$.items[0].title''',
+                            ) !=
+                            null) {
+                          _model.brandsQuery = await BrandsTable().queryRows(
+                            queryFn: (q) => q.eq(
+                              'title',
+                              getJsonField(
+                                (_model.productFinder?.jsonBody ?? ''),
+                                r'''$.items[0].brand''',
+                              ).toString(),
                             ),
-                          });
-                          await ProductsTable().insert({
+                          );
+                          if (!(_model.brandsQuery != null &&
+                              (_model.brandsQuery)!.isNotEmpty)) {
+                            _model.productBrand = await BrandsTable().insert({
+                              'title': getJsonField(
+                                (_model.productFinder?.jsonBody ?? ''),
+                                r'''$.items[0].brand''',
+                              ).toString(),
+                            });
+                          }
+                          _model.insertedProductInfo =
+                              await ProductsTable().insert({
                             'title': ProductFinderByBarcodeCall.productTitle(
                               (_model.productFinder?.jsonBody ?? ''),
                             ),
@@ -125,16 +178,60 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                               (_model.productFinder?.jsonBody ?? ''),
                               r'''$.items[0].highest_recorded_price''',
                             ),
-                            'brandRef': _model.productBrandInfo?.id,
+                            'brandRef': _model.brandsQuery != null &&
+                                    (_model.brandsQuery)!.isNotEmpty
+                                ? _model.brandsQuery?.first?.id
+                                : _model.productBrand?.id,
                           });
+                          _model.productDetailsInfo =
+                              await ProductDetailFinderCall.call(
+                            productTitle: _model.insertedProductInfo?.title,
+                          );
+
+                          _model.gptObjectResponse = await actions.stringToJSON(
+                            getJsonField(
+                              (_model.productDetailsInfo?.jsonBody ?? ''),
+                              r'''$.message''',
+                            ).toString(),
+                          );
+                          await ProductsTable().update(
+                            data: {
+                              'pros': (getJsonField(
+                                _model.gptObjectResponse,
+                                r'''$.pros''',
+                                true,
+                              ) as List)
+                                  .map<String>((s) => s.toString())
+                                  .toList(),
+                              'cons': (getJsonField(
+                                _model.gptObjectResponse,
+                                r'''$.cons''',
+                                true,
+                              ) as List)
+                                  .map<String>((s) => s.toString())
+                                  .toList(),
+                              'featureList': (getJsonField(
+                                _model.gptObjectResponse,
+                                r'''$.featureList''',
+                                true,
+                              ) as List)
+                                  .map<String>((s) => s.toString())
+                                  .toList(),
+                            },
+                            matchingRows: (rows) => rows.eq(
+                              'id',
+                              _model.insertedProductInfo?.id,
+                            ),
+                          );
                           await showDialog(
                             context: context,
                             builder: (alertDialogContext) {
                               return AlertDialog(
                                 title: Text('Yesss!'),
                                 content: Text(
-                                    (_model.productFinder?.jsonBody ?? '')
-                                        .toString()),
+                                    'Product Added to db!!/n${ProductFinderByBarcodeCall.productTitle(
+                                  (_model.productFinder?.jsonBody ?? ''),
+                                )}'),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
@@ -145,13 +242,18 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                               );
                             },
                           );
+
+                          context.pushNamed('ProductSummary');
                         } else {
                           await showDialog(
                             context: context,
                             builder: (alertDialogContext) {
                               return AlertDialog(
                                 title: Text('Ooopss!!'),
-                                content: Text('Product not found!'),
+                                content: Text(getJsonField(
+                                  (_model.productFinder?.jsonBody ?? ''),
+                                  r'''$.code''',
+                                ).toString()),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>

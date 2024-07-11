@@ -11,17 +11,17 @@ export 'api_manager.dart' show ApiCallResponse;
 
 const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 
-class GoodsFinderCall {
+class ProductDetailFinderCall {
   static Future<ApiCallResponse> call({
-    String? productPhotoURL = '',
+    String? productTitle = '',
   }) async {
     final ffApiRequestBody = '''
 {
-  "productPhotoURL": "<productPhoto>"
+  "productTitle": "${productTitle}"
 }''';
     return ApiManager.instance.makeApiCall(
-      callName: 'goodsFinder',
-      apiUrl: 'https://spa3he.buildship.run/goodsFinder',
+      callName: 'productDetailFinder',
+      apiUrl: 'https://spa3he.buildship.run/productDetailFinder',
       callType: ApiCallType.POST,
       headers: {},
       params: {},
