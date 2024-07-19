@@ -3,7 +3,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/custom_code/actions/index.dart' as actions;
+import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -108,12 +108,29 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                           productTitle: _model.productQuery?.first?.title,
                         );
 
-                        _model.gptObjectResponseExistedProduct =
-                            await actions.stringToJSON(
-                          getJsonField(
-                            (_model.existedProductDetailsInfo?.jsonBody ?? ''),
-                            r'''$.message''',
-                          ).toString(),
+                        await ProductsTable().update(
+                          data: {
+                            'pros': functions.productPronsFinder(getJsonField(
+                              (_model.existedProductDetailsInfo?.jsonBody ??
+                                  ''),
+                              r'''$.message''',
+                            ).toString()),
+                            'cons': functions.productConsFinder(getJsonField(
+                              (_model.existedProductDetailsInfo?.jsonBody ??
+                                  ''),
+                              r'''$.message''',
+                            ).toString()),
+                            'featureList':
+                                functions.productFeatureListFinder(getJsonField(
+                              (_model.existedProductDetailsInfo?.jsonBody ??
+                                  ''),
+                              r'''$.message''',
+                            ).toString()),
+                          },
+                          matchingRows: (rows) => rows.eq(
+                            'id',
+                            _model.productQuery?.first?.id,
+                          ),
                         );
                         await showDialog(
                           context: context,
@@ -123,7 +140,7 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                               content: Text(getJsonField(
                                 (_model.existedProductDetailsInfo?.jsonBody ??
                                     ''),
-                                r'''$.message.pros''',
+                                r'''$.message''',
                               ).toString()),
                               actions: [
                                 TextButton(
@@ -135,8 +152,6 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                             );
                           },
                         );
-
-                        context.pushNamed('ProductSummary');
                       } else {
                         _model.productFinder =
                             await ProductFinderByBarcodeCall.call(
@@ -188,31 +203,19 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                             productTitle: _model.insertedProductInfo?.title,
                           );
 
-                          _model.gptObjectResponse = await actions.stringToJSON(
-                            getJsonField(
-                              (_model.productDetailsInfo?.jsonBody ?? ''),
-                              r'''$.message''',
-                            ).toString(),
-                          );
                           await ProductsTable().update(
                             data: {
-                              'pros': (getJsonField(
-                                _model.gptObjectResponse,
-                                r'''$.pros''',
-                                true,
-                              ) as List)
-                                  .map<String>((s) => s.toString())
-                                  .toList(),
-                              'cons': (getJsonField(
-                                _model.gptObjectResponse,
-                                r'''$.cons''',
-                                true,
-                              ) as List)
-                                  .map<String>((s) => s.toString())
-                                  .toList(),
+                              'pros': functions.productPronsFinder(getJsonField(
+                                (_model.productDetailsInfo?.jsonBody ?? ''),
+                                r'''$.message''',
+                              ).toString()),
+                              'cons': functions.productConsFinder(getJsonField(
+                                (_model.productDetailsInfo?.jsonBody ?? ''),
+                                r'''$.message''',
+                              ).toString()),
                               'featureList': (getJsonField(
-                                _model.gptObjectResponse,
-                                r'''$.featureList''',
+                                (_model.productDetailsInfo?.jsonBody ?? ''),
+                                r'''$.message''',
                                 true,
                               ) as List)
                                   .map<String>((s) => s.toString())
@@ -223,27 +226,6 @@ class _ScanPageWidgetState extends State<ScanPageWidget> {
                               _model.insertedProductInfo?.id,
                             ),
                           );
-                          await showDialog(
-                            context: context,
-                            builder: (alertDialogContext) {
-                              return AlertDialog(
-                                title: Text('Yesss!'),
-                                content: Text(
-                                    'Product Added to db!!/n${ProductFinderByBarcodeCall.productTitle(
-                                  (_model.productFinder?.jsonBody ?? ''),
-                                )}'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(alertDialogContext),
-                                    child: Text('Ok'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          context.pushNamed('ProductSummary');
                         } else {
                           await showDialog(
                             context: context,

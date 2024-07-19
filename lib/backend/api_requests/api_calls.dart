@@ -11,6 +11,57 @@ export 'api_manager.dart' show ApiCallResponse;
 
 const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 
+/// Start OpenAi APIs Group Code
+
+class OpenAiAPIsGroup {
+  static String getBaseUrl() => 'https://api.openai.com/v1';
+  static Map<String, String> headers = {
+    'Content-Type': 'application/json',
+  };
+  static ProductFeatureFinderCall productFeatureFinderCall =
+      ProductFeatureFinderCall();
+}
+
+class ProductFeatureFinderCall {
+  Future<ApiCallResponse> call({
+    String? apiKey = '',
+    String? prompt = '',
+  }) async {
+    final baseUrl = OpenAiAPIsGroup.getBaseUrl();
+
+    final ffApiRequestBody = '''
+{
+  "model": "gpt-4o",
+  "messages": [],
+  "temperature": 1,
+  "max_tokens": 256,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'productFeatureFinder',
+      apiUrl: '${baseUrl}/chat/completions',
+      callType: ApiCallType.POST,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${apiKey}',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+}
+
+/// End OpenAi APIs Group Code
+
 class ProductDetailFinderCall {
   static Future<ApiCallResponse> call({
     String? productTitle = '',
